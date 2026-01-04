@@ -1,0 +1,23 @@
+IF COL_LENGTH('vals', 'KOTERET') IS NULL
+BEGIN
+    ALTER TABLE Valve
+    ADD KOTERET VARCHAR(100);
+END;
+WITH FirstValidTeur AS (
+    SELECT
+        SHURA,
+        TEUR,
+        ROW_NUMBER() OVER (PARTITION BY SHURA ORDER BY ID) AS rn
+    FROM vals
+    WHERE TEUR IS NOT NULL
+),
+KoteretPerShura AS (
+    SELECT SHURA, TEUR AS KOTERET
+    FROM FirstValidTeur
+    WHERE rn = 1
+)
+UPDATE v
+SET v.KOTERET = k.KOTERET
+FROM vals v
+LEFT JOIN KoteretPerShura k ON v.SHURA = k.SHURA;
+SELECT * FROM vals;
